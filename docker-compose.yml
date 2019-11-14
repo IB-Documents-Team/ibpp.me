@@ -2,7 +2,8 @@ version: '2.0'
 
 services:
 
-  # Web UI and API
+  # API on web:5000
+  # or on <host>:5000
   web:
     build:
       context: './'
