@@ -1,0 +1,33 @@
+version: '2.0'
+
+services:
+
+  # Web UI and API
+  web:
+    build:
+      context: './'
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    depends_on:
+      - neo4j
+
+  # Bolt on neo4j:7687
+  # or on <public_host>:7687
+  neo4j:
+    image: neo4j:latest
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    env_file:
+      - .env
+    volumes:
+      - data:/data
+      - config:/conf
+
+# Data persistence
+volumes:
+  data:
+  config:

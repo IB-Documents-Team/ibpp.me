@@ -1,0 +1,40 @@
+<html>
+
+<head>
+    <script
+            src="https://code.jquery.com/jquery-3.4.1.min.js"
+            integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+            crossorigin="anonymous">
+    </script>
+</head>
+
+<body>
+<div>
+    <form id="short-form">
+        <input type="submit" value="Shorten link"/>
+    </form>
+    <p id="short-link"></p>
+</div>
+
+<script>
+    $(document).ready(function(){
+        $("#short-form").submit(function(event){
+            event.preventDefault();
+
+            $.ajax({
+                url: "http://localhost:5000/function/shorten", // TODO: Update to correct API url
+                type: 'post',
+                data: JSON.stringify({
+                    "page": window.location.href
+                }),
+                contentType: "application/json; charset=utf-8",
+                dataType: 'json',
+                success: function (data) {
+                    $("#short-link").text(data['url']);
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>
