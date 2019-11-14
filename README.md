@@ -1,6 +1,31 @@
 # ibpp.me Link Shortener
 
-Snippet to embed into webpage can be found in `/embed-snippet/`.
+##  Usage
+
+Run the API on a host with Docker.    
+Embed the JavaScript and HTML found in `/embed-snippet/` some CSS
+and have the URL it's posting to match the host:port that the API
+is running on.
+
+## API
+
+**Get redirected to page**    
+`GET /<shortened_uri>`    
+Response: 301 or 404 (redirect or not found)
+
+**Shorten URL**    
+`POST /function/shorten`    
+Sample response (200):
+```json
+{
+    "url": "https://ibpp.me/abc123"
+}
+```
+or 403 (permission denied)
+
+Permission will be denied if the host you are `post`ing from is not
+a whitelisted domain in the API's configuration.
+
 
 ## License
 
