@@ -22,6 +22,7 @@ import uuid
 import csv
 import sys
 
+from flask_cors import CORS, cross_origin
 from flask import Flask, Response, redirect, request, render_template
 from neomodel import StructuredNode, StringProperty, config
 
@@ -39,6 +40,7 @@ if whitelist_array is None:
     sys.exit(1)
 
 app = Flask(__name__)
+CORS(app)
 
 
 class Url(StructuredNode):
@@ -66,6 +68,7 @@ def short_page(short_url):
 
 
 @app.route('/function/shorten', methods=["POST"])
+@cross_origin()
 def shorten_link():
     req = request.json
     page_url = req['page']
