@@ -22,13 +22,13 @@ services:
   ibpp_db:
     image: neo4j:latest
     ports:
-      - "7474:7474"
+      - "7473:7473"
       - "7687:7687"
     env_file:
       - .env
     volumes:
-      - data:/var/lib/neo4j/data
-      - config:/var/lib/neo4j/conf
+      - data:/data
+      - config:/conf
     networks:
       - web-net_main
 
