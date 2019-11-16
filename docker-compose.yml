@@ -1,10 +1,10 @@
-version: '2.0'
+version: '3.7'
 
 services:
 
   # API on web:5000
   # or on <host>:5000
-  web:
+  ibpp:
     build:
       context: './'
       dockerfile: Dockerfile
@@ -14,6 +14,8 @@ services:
       - .env
     depends_on:
       - neo4j
+    networks:
+      - web-net_main
 
   # Bolt on neo4j:7687
   # or on <public_host>:7687
@@ -27,8 +29,14 @@ services:
     volumes:
       - data:/data
       - config:/conf
+    networks:
+      - web-net_main
 
 # Data persistence
 volumes:
   data:
   config:
+
+networks:
+  web-net_main:
+    external: true
