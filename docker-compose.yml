@@ -27,8 +27,8 @@ services:
     env_file:
       - .env
     volumes:
-      - data:/data
-      - config:/conf
+      - data:/var/lib/neo4j/data
+      - config:/var/lib/neo4j/conf
     networks:
       - web-net_main
 
