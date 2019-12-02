@@ -18,7 +18,7 @@ along with ibpp.me. If not, see http://www.gnu.org/licenses/.
 """
 
 import os
-from uuid import uuid4
+import uuid
 import csv
 import sys
 
@@ -44,7 +44,7 @@ CORS(app)
 
 
 class Url(StructuredNode):
-    short = StringProperty(unique_index=True, default=str(uuid4())[:short_length])
+    short = StringProperty(unique_index=True, default="DEFAULT")
     long = StringProperty(unique_index=True, required=True)
 
 
@@ -85,6 +85,8 @@ def shorten_link():
         return _build_cors_prelight_response()
     elif request.method == "POST":
         url_node = Url.get_or_create({"long": page_url})[0]
+        if "DEFAULT" in url_node.short:
+            url_node.short = str(uuid.uuid4())[:short_length]
         final_url = short_domain + url_node.short
         response = jsonify({"url": final_url})
         response.headers.add("Access-Control-Allow-Origin", "*")
