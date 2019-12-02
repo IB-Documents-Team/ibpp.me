@@ -22,7 +22,6 @@ import uuid
 import csv
 import sys
 
-from flask_cors import CORS, cross_origin
 from flask import Flask, Response, redirect, request, render_template, make_response, jsonify
 from neomodel import StructuredNode, StringProperty, config, UniqueIdProperty
 
@@ -40,20 +39,10 @@ if whitelist_array is None:
     sys.exit(1)
 
 app = Flask(__name__)
-CORS(app)
-
 
 class Url(StructuredNode):
     short = StringProperty(unique_index=True, default="DEFAULT")
     long = StringProperty(unique_index=True, required=True)
-
-
-def _build_cors_prelight_response():
-    response = make_response()
-    response.headers.add("Access-Control-Allow-Origin", "*")
-    response.headers.add("Access-Control-Allow-Headers", "*")
-    response.headers.add("Access-Control-Allow-Methods", "*")
-    return response
 
 
 @app.route('/<short_url>', methods=["GET"])
@@ -69,7 +58,6 @@ def short_page(short_url):
 
 
 @app.route('/function/shorten', methods=["POST", "OPTIONS"])
-@cross_origin()
 def shorten_link():
     req = request.json
     page_url = req['page']
@@ -81,17 +69,13 @@ def shorten_link():
     if not accept:
         return Response(status=403)
 
-    if request.method == "OPTIONS":  # CORS preflight
-        return _build_cors_prelight_response()
-    elif request.method == "POST":
-        url_node = Url.get_or_create({"long": page_url})[0]
-        if "DEFAULT" in url_node.short:
-            url_node.short = str(uuid.uuid4())[:short_length]
-            url_node.save()
-        final_url = short_domain + url_node.short
-        response = jsonify({"url": final_url})
-        response.headers.add("Access-Control-Allow-Origin", "*")
-        return response
+    url_node = Url.get_or_create({"long": page_url})[0]
+    if "DEFAULT" in url_node.short:
+        url_node.short = str(uuid.uuid4())[:short_length]
+        url_node.save()
+    final_url = short_domain + url_node.short
+    response = jsonify({"url": final_url})
+    return response
 
 
 if __name__ == '__main__':
