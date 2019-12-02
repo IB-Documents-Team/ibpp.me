@@ -56,7 +56,7 @@ def _build_cors_prelight_response():
 
 @app.route('/<short_url>', methods=["GET"])
 def short_page(short_url):
-    red_res = redis_client.get(short_url)
+    red_res = redis_client.get(short_url).decode("utf-8")
     if red_res is None:
         return render_template("404.html")
     else:
@@ -78,7 +78,7 @@ def shorten_link():
         #if not accept:
         #    return Response(status=403)
 
-        red_res = redis_client.get(page_url)
+        red_res = redis_client.get(page_url).decode("utf-8")
         if red_res is None:
             short = str(uuid.uuid4())[:short_length]
             redis_client.set(page_url, short)
