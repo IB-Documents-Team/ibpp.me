@@ -65,19 +65,19 @@ def short_page(short_url):
 
 @app.route('/function/shorten', methods=["POST", "OPTIONS"])
 def shorten_link():
-    req = request.json
-    page_url = req['page']
-
-    accept = False
-    for whitelist_test in whitelist_array:
-        if page_url.startswith(whitelist_test):
-            accept = True
-    if not accept:
-        return Response(status=403)
-
     if request.method == "OPTIONS":  # CORS preflight
         return _build_cors_prelight_response()
     elif request.method == "POST":
+        req = request.json
+        page_url = req['page']
+
+        accept = False
+        for whitelist_test in whitelist_array:
+            if page_url.startswith(whitelist_test):
+                accept = True
+        if not accept:
+            return Response(status=403)
+
         red_res = redis_client.get(page_url)
         if red_res is None:
             short = str(uuid.uuid4())[:short_length]
