@@ -13,7 +13,7 @@ services:
     env_file:
       - .env
     depends_on:
-      - ibpp_db
+      - ibpp_redis
     networks:
       - web-net_main
 
@@ -26,6 +26,17 @@ services:
       - data:/data
     networks:
       - web-net_main
+
+  # Automated backup of Redis image to S3 object storage
+  ibpp_backup:
+    image: pants1/docker-volume-backup
+    restart: on-failure
+    env_file:
+      - backup.env
+    volumes:
+      - /var/lib/docker/volumes/:/HostVolumeData
+    depends_on:
+      - ibpp_redis
 
 # Data persistence
 volumes:

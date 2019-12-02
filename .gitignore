@@ -1,5 +1,6 @@
 # Secrets
 .env
+backup.env
 
 # IDE and Python directories
 __pycache__/
