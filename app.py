@@ -84,7 +84,7 @@ def shorten_link():
     if request.method == "OPTIONS":  # CORS preflight
         return _build_cors_prelight_response()
     elif request.method == "POST":
-        url_node = Url.get_or_create({"long": "page_url"})[0]
+        url_node = Url.get_or_create({"long": page_url})[0]
         final_url = short_domain + url_node.short
         response = jsonify({"url": final_url})
         response.headers.add("Access-Control-Allow-Origin", "*")
