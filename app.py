@@ -18,7 +18,7 @@ along with ibpp.me. If not, see http://www.gnu.org/licenses/.
 """
 
 import os
-import uuid
+from uuid import uuid4
 import csv
 import sys
 
@@ -44,8 +44,7 @@ CORS(app)
 
 
 class Url(StructuredNode):
-    uid = UniqueIdProperty()
-    short = uid[:short_length]
+    short = StringProperty(unique_index=True, default=uuid4()[:short_length])
     long = StringProperty(unique_index=True, required=True)
 
 
