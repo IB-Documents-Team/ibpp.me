@@ -23,7 +23,7 @@ import csv
 import sys
 
 from flask_cors import CORS, cross_origin
-from flask import Flask, Response, redirect, request, render_template
+from flask import Flask, Response, redirect, request, render_template, make_response, jsonify
 from neomodel import StructuredNode, StringProperty, config
 
 config.DATABASE_URL = os.environ["NEO4J_BOLT_URL"]
@@ -58,6 +58,14 @@ def new_url(page_url):
         return unique_id
 
 
+def _build_cors_prelight_response():
+    response = make_response()
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    response.headers.add("Access-Control-Allow-Headers", "*")
+    response.headers.add("Access-Control-Allow-Methods", "*")
+    return response
+
+
 @app.route('/<short_url>', methods=["GET"])
 def short_page(short_url):
     try:
@@ -67,7 +75,7 @@ def short_page(short_url):
         return render_template("404.html")
 
 
-@app.route('/function/shorten', methods=["POST"])
+@app.route('/function/shorten', methods=["POST", "OPTIONS"])
 @cross_origin()
 def shorten_link():
     req = request.json
@@ -80,14 +88,21 @@ def shorten_link():
     if not accept:
         return Response(status=403)
 
-    try:
-        url_node = Url.nodes.get(long=page_url)
-        final_url = short_domain + url_node.short
-        return {"url": final_url}
-    except Url.DoesNotExist:
-        short_ending = new_url(page_url)
-        final_url = short_domain + short_ending
-        return {"url": final_url}
+    if request.method == "OPTIONS":  # CORS preflight
+        return _build_cors_prelight_response()
+    elif request.method == "POST":
+        try:
+            url_node = Url.nodes.get(long=page_url)
+            final_url = short_domain + url_node.short
+            response = jsonify({"url": final_url})
+            response.headers.add("Access-Control-Allow-Origin", "*")
+            return response
+        except Url.DoesNotExist:
+            short_ending = new_url(page_url)
+            final_url = short_domain + short_ending
+            response = jsonify({"url": final_url})
+            response.headers.add("Access-Control-Allow-Origin", "*")
+            return response
 
 
 if __name__ == '__main__':
