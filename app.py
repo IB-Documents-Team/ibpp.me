@@ -44,18 +44,9 @@ CORS(app)
 
 
 class Url(StructuredNode):
-    short = StringProperty(unique_index=True, required=True)
+    uid = UniqueIdProperty()
+    short = uid[:short_length]
     long = StringProperty(unique_index=True, required=True)
-
-
-def new_url(page_url):
-    unique_id = str(uuid.uuid4())[:short_length]
-    try:
-        url_node = Url.nodes.get(short=unique_id)
-        new_url(page_url)
-    except Url.DoesNotExist:
-        new_url_node = Url(long=page_url, short=unique_id).save()
-        return unique_id
 
 
 def _build_cors_prelight_response():
@@ -69,8 +60,11 @@ def _build_cors_prelight_response():
 @app.route('/<short_url>', methods=["GET"])
 def short_page(short_url):
     try:
-        url_node = Url.nodes.get(short=short_url)
-        return redirect(url_node.long, code=301)
+        url_node = Url.nodes.first_or_none(short=short_url)
+        if url_node is not None:
+            return redirect(url_node.long, code=301)
+        else:
+            return render_template("404.html")
     except Url.DoesNotExist:
         return render_template("404.html")
 
@@ -91,18 +85,11 @@ def shorten_link():
     if request.method == "OPTIONS":  # CORS preflight
         return _build_cors_prelight_response()
     elif request.method == "POST":
-        try:
-            url_node = Url.nodes.get(long=page_url)
-            final_url = short_domain + url_node.short
-            response = jsonify({"url": final_url})
-            response.headers.add("Access-Control-Allow-Origin", "*")
-            return response
-        except Url.DoesNotExist:
-            short_ending = new_url(page_url)
-            final_url = short_domain + short_ending
-            response = jsonify({"url": final_url})
-            response.headers.add("Access-Control-Allow-Origin", "*")
-            return response
+        url_node = Url.get_or_create(long=page_url)[0]
+        final_url = short_domain + url_node.short
+        response = jsonify({"url": final_url})
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        return response
 
 
 if __name__ == '__main__':
