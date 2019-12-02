@@ -44,7 +44,7 @@ CORS(app)
 
 
 class Url(StructuredNode):
-    short = StringProperty(unique_index=True, default=uuid4()[:short_length])
+    short = StringProperty(unique_index=True, default=str(uuid4())[:short_length])
     long = StringProperty(unique_index=True, required=True)
 
 
