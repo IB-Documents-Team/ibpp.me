@@ -17,25 +17,19 @@ services:
     networks:
       - web-net_main
 
-  # Bolt on neo4j:7687
-  # or on <public_host>:7687
-  ibpp_db:
-    image: neo4j:latest
-    ports:
-      - "7474:7474"
-      - "7687:7687"
+  # Redis on ibpp_redis:6379
+  ibpp_redis:
+    image: redis
     env_file:
       - .env
     volumes:
       - data:/data
-      - config:/conf
     networks:
       - web-net_main
 
 # Data persistence
 volumes:
   data:
-  config:
 
 networks:
   web-net_main:

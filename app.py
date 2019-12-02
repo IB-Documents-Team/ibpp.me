@@ -23,12 +23,17 @@ import csv
 import sys
 
 from flask import Flask, Response, redirect, request, render_template, make_response, jsonify
-from neomodel import StructuredNode, StringProperty, config, UniqueIdProperty
+import redis
 
-config.DATABASE_URL = os.environ["NEO4J_BOLT_URL"]
 short_domain = os.environ["SHORT_DOMAIN"]
 short_length = int(os.environ["SHORT_LENGTH"])
 whitelist = os.environ["WHITELISTED_SITES"]
+
+host = os.environ['REDIS_HOST']
+port = int(os.environ['REDIS_PORT'])
+db = int(os.environ['REDIS_DB'])
+
+redis_client = redis.Redis(host=host, port=port, db=db)
 
 whitelist_array = None
 csv_reader = csv.reader(whitelist.split('\n'), delimiter=',')
@@ -40,47 +45,40 @@ if whitelist_array is None:
 
 app = Flask(__name__)
 
-class Url(StructuredNode):
-    short = StringProperty(unique_index=True, default="DEFAULT")
-    long = StringProperty(unique_index=True, required=True)
-
 
 @app.route('/<short_url>', methods=["GET"])
 def short_page(short_url):
-    try:
-        url_node = Url.nodes.first_or_none(short=short_url)
-        if url_node is not None:
-            return redirect(url_node.long, code=301)
-        else:
-            return render_template("404.html")
-    except Url.DoesNotExist:
+    red_res = redis_client.get(short_url)
+    if red_res is None:
         return render_template("404.html")
+    else:
+        return redirect(red_res, code=301)
 
 
-@app.route('/function/shorten', methods=["POST", "OPTIONS"])
+@app.route('/function/shorten', methods=["POST"])
 def shorten_link():
     req = request.json
     page_url = req['page']
 
     accept = False
     for whitelist_test in whitelist_array:
-        if whitelist_test in page_url:
+        if page_url.startswith(whitelist_test):
             accept = True
     if not accept:
         return Response(status=403)
 
-    url_node = Url.get_or_create({"long": page_url})[0]
-    if "DEFAULT" in url_node.short:
-        url_node.short = str(uuid.uuid4())[:short_length]
-        url_node.save()
-    final_url = short_domain + url_node.short
-    response = jsonify({"url": final_url})
-    return response
+    red_res = redis_client.get(page_url)
+    if red_res is None:
+        short = str(uuid.uuid4())[:short_length]
+        redis_client.set(page_url, short)
+        redis_client.set(short, page_url)
+        return jsonify({"url": short_domain + short})
+    else:
+        return jsonify({"url": short_domain + red_res})
 
 
 if __name__ == '__main__':
     app.run(
         host="0.0.0.0",
-        port=5000,
-        debug=True
+        port=5000
     )
