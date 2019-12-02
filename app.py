@@ -56,11 +56,11 @@ def _build_cors_prelight_response():
 
 @app.route('/<short_url>', methods=["GET"])
 def short_page(short_url):
-    red_res = redis_client.get(short_url).decode("utf-8")
+    red_res = redis_client.get(short_url)
     if red_res is None:
         return render_template("404.html")
     else:
-        return redirect(red_res, code=301)
+        return redirect(red_res.decode("utf-8"), code=301)
 
 
 @app.route('/function/shorten', methods=["POST", "OPTIONS"])
@@ -78,7 +78,7 @@ def shorten_link():
         #if not accept:
         #    return Response(status=403)
 
-        red_res = redis_client.get(page_url).decode("utf-8")
+        red_res = redis_client.get(page_url)
         if red_res is None:
             short = str(uuid.uuid4())[:short_length]
             redis_client.set(page_url, short)
@@ -87,7 +87,8 @@ def shorten_link():
             response.headers.add("Access-Control-Allow-Origin", "*")
             return response
         else:
-            response = jsonify({"url": short_domain + red_res})
+            short = red_res.decode("utf-8")
+            response = jsonify({"url": short_domain + short})
             response.headers.add("Access-Control-Allow-Origin", "*")
             return response
 
