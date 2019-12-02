@@ -24,7 +24,7 @@ import sys
 
 from flask_cors import CORS, cross_origin
 from flask import Flask, Response, redirect, request, render_template, make_response, jsonify
-from neomodel import StructuredNode, StringProperty, config
+from neomodel import StructuredNode, StringProperty, config, UniqueIdProperty
 
 config.DATABASE_URL = os.environ["NEO4J_BOLT_URL"]
 short_domain = os.environ["SHORT_DOMAIN"]
