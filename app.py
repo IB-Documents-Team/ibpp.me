@@ -87,6 +87,7 @@ def shorten_link():
         url_node = Url.get_or_create({"long": page_url})[0]
         if "DEFAULT" in url_node.short:
             url_node.short = str(uuid.uuid4())[:short_length]
+            url_node.save()
         final_url = short_domain + url_node.short
         response = jsonify({"url": final_url})
         response.headers.add("Access-Control-Allow-Origin", "*")
