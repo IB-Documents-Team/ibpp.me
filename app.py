@@ -71,12 +71,12 @@ def shorten_link():
         req = request.json
         page_url = req['page']
 
-        accept = False
-        for whitelist_test in whitelist_array:
-            if page_url.startswith(whitelist_test):
-                accept = True
-        if not accept:
-            return Response(status=403)
+        #accept = False
+        #for whitelist_test in whitelist_array:
+        #    if page_url.startswith(whitelist_test):
+        #        accept = True
+        #if not accept:
+        #    return Response(status=403)
 
         red_res = redis_client.get(page_url)
         if red_res is None:
