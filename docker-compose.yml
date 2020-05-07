@@ -2,20 +2,15 @@ version: '3.7'
 
 services:
 
-  # API on web:5000
-  # or on <host>:5000
+  # API on ibpp_web:5000
   ibpp_web:
     build:
       context: './'
       dockerfile: Dockerfile
-    ports:
-      - "5000:5000"
     env_file:
       - .env
     depends_on:
       - ibpp_redis
-    networks:
-      - web-net_main
 
   # Redis on ibpp_redis:6379
   ibpp_redis:
@@ -24,8 +19,6 @@ services:
       - .env
     volumes:
       - data:/data
-    networks:
-      - web-net_main
 
   # Automated backup of Redis image to S3 object storage
   ibpp_backup:
@@ -41,7 +34,3 @@ services:
 # Data persistence
 volumes:
   data:
-
-networks:
-  web-net_main:
-    external: true

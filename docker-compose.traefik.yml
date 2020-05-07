@@ -1,0 +1,55 @@
+version: '3.7'
+
+services:
+
+  ibpp_web:
+    build:
+      context: './'
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - ibpp_redis
+    networks:
+      - web
+      - backend
+    labels: 
+      - "traefik.enable=true"
+      - "traefik.http.routers.ibpp-web.rule=Host(`ibpp.me`) || Host(`www.ibpp.me`)"
+      - "traefik.http.routers.ibpp-web.entrypoints=web"
+      - "traefik.http.routers.ibpp-web.middlewares=redirect@file"
+      - "traefik.http.routers.ibpp-secured.rule=Host(`ibpp.me`) || Host(`www.ibpp.me`)"
+      - "traefik.http.routers.ibpp-secured.entrypoints=web-secured"
+      - "traefik.http.routers.ibpp-secured.tls.certresolver=mytlschallenge"
+      - "traefik.http.services.ibpp.loadbalancer.server.port=5000"
+
+  # Redis on ibpp_redis:6379
+  ibpp_redis:
+    image: redis
+    env_file:
+      - .env
+    volumes:
+      - data:/data
+    networks:
+      - backend
+
+  # Automated backup of Redis image to S3 object storage
+  ibpp_backup:
+    image: pants1/docker-volume-backup
+    restart: on-failure
+    env_file:
+      - backup.env
+    volumes:
+      - /var/lib/docker/volumes/:/HostVolumeData
+    depends_on:
+      - ibpp_redis
+
+# Data persistence
+volumes:
+  data:
+
+networks:
+  web:
+    external: true
+  backend:
+    external: false
